@@ -11,6 +11,12 @@ extern "C" {
 #define TYPE_DATA             0x02
 #define SUBTYPE_PROBE_REQUEST 0x04
 
+const int ledPin = LED_BUILTIN;
+int ledState = LOW;
+unsigned long previousMillis = 0;
+const long interval = 200;
+
+
 struct RxControl {
  signed rssi:8; // signal intensity of packet
  unsigned rate:4;
@@ -68,6 +74,9 @@ static void showMetadata(SnifferPacket *snifferPacket) {
       frameSubType != SUBTYPE_PROBE_REQUEST)
         return;
 
+  ledState = LOW;
+  digitalWrite(ledPin, ledState);
+
   Serial.print("RSSI: ");
   Serial.print(snifferPacket->rx_ctrl.rssi, DEC);
 
@@ -124,6 +133,8 @@ void channelHop()
 #define ENABLE  1
 
 void setup() {
+  pinMode(ledPin, OUTPUT);
+
   // set the WiFi chip to "promiscuous" mode aka monitor mode
   Serial.begin(115200);
   delay(10);
@@ -142,5 +153,13 @@ void setup() {
 }
 
 void loop() {
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    ledState = HIGH;
+    digitalWrite(ledPin, ledState);
+  }
+
   delay(10);
 }
